@@ -7,7 +7,12 @@ const api = require("./api");
 const logger = require("./logger");
 const config = require("./config");
 const { calculateCost } = require("./utils");
-const { TASK_TYPE_CHECK_ID, QUERY_PARAM_FOR_TASKS } = require("./const");
+const {
+	TASK_TYPE_CHECK_ID,
+	QUERY_PARAM_FOR_TASKS,
+	MILLISECONDS_PER_SECONDS,
+	DAY_PER_SECONDS,
+} = require("./const");
 
 const app = express();
 
@@ -25,10 +30,14 @@ app.post("/lead", async (req, res) => {
 		const { contacts } = deal._embedded;
 
 		if (!contacts.length) {
-			return res.send("OK");
+			return res.send("No contacts");
 		}
 
-		const price = await calculateCost(deal);
+		const { id: idMainContact } = contacts.find((contact) => contact.is_main);
+
+		const contact = await api.getContact(idMainContact);
+
+		const price = calculateCost(deal, contact);
 
 		if (deal.price === price) {
 			return res.send("OK");
@@ -50,7 +59,7 @@ app.post("/lead", async (req, res) => {
 		if (!tasksData) {
 			const taskForCreate = {
 				text: "Проверить бюджет",
-				complete_till: Math.floor(Date.now() / 1000) + 86400,
+				complete_till: Math.floor(Date.now() / MILLISECONDS_PER_SECONDS) + DAY_PER_SECONDS,
 				task_type_id: TASK_TYPE_CHECK_ID,
 				entity_id: deal.id,
 				entity_type: "leads",
@@ -63,7 +72,7 @@ app.post("/lead", async (req, res) => {
 	} catch (error) {
 		console.error("error:", error);
 
-		res.send("OK");
+		res.send("ERROR");
 	}
 });
 
@@ -87,7 +96,7 @@ app.post("/task", async (req, res) => {
 	} catch (error) {
 		console.error("error:", error);
 
-		res.send("OK");
+		res.send("ERROR");
 	}
 });
 
