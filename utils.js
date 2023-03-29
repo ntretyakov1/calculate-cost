@@ -4,7 +4,7 @@
  *  - общего назначения;
  */
 
-const { DealIdFieldServices, COMPARISON_ID } = require("./const");
+const { DealCustomFieldServices, COMPARISON_ID } = require("./const");
 
 /**
  * Функция извлекает значение из id поля, массива полей custom_fields сущности amoCRM;
@@ -31,7 +31,7 @@ const getFieldValue = (customFields, fieldId) => {
 const calculateCost = (deal, contact) => {
 	const servicesValues = getFieldEnumsId(
 		deal.custom_fields_values,
-		DealIdFieldServices.Field
+		DealCustomFieldServices.FieldId
 	);
 
 	const price = servicesValues.reduce((acc, idEnum) => {
